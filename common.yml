@@ -1,0 +1,5 @@
+- name: setup common things
+  become: True
+  hosts: all
+  roles:
+    - k8s-common

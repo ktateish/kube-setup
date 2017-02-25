@@ -1,0 +1,5 @@
+- name: setup controller
+  become: True
+  hosts: controller
+  roles:
+    - k8s-ctrl

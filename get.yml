@@ -1,0 +1,5 @@
+- name: Get k8s archive and extract
+  become: True
+  hosts: all
+  roles:
+    - k8s-get

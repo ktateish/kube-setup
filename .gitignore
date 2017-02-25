@@ -1,0 +1,7 @@
+*.retry
+/bin/
+/inventory*
+/lib/
+/local/
+/pip-selfcheck.json
+/share/

@@ -1,0 +1,6 @@
+#
+DOCKER_BIP="--bip={{ docker_bip }}"
+DOCKER_IPTABLES="--iptables=false"
+DOCKER_IP_MASQ="--ip-masq=false"
+DOCKER_STORAGE_DRIVER="--storage-driver=overlay"
+DOCKER_OPTS=""

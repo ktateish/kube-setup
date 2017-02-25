@@ -1,0 +1,24 @@
+---
+# tasks file for k8s-ctrl
+- name: create directories
+  file: name={{ item }} state=directory
+  with_items:
+    - /etc/kubernetes/manifests
+
+- name: create log files
+  file: name={{ item }} state=touch
+  with_items:
+    - /var/log/etcd.log
+    - /var/log/etcd-events.log
+    - /var/log/kube-apiserver.log
+    - /var/log/kube-controller-manager.log
+    - /var/log/kube-scheduler.log
+
+- name: copy manifests
+  template: src={{ item }} dest=/{{ item }}
+  with_items:
+    - etc/kubernetes/manifests/etcd.yaml
+    - etc/kubernetes/manifests/etcd-events.yaml
+    - etc/kubernetes/manifests/kube-apiserver.yaml
+    - etc/kubernetes/manifests/kube-controller-manager.yaml
+    - etc/kubernetes/manifests/kube-scheduler.yaml

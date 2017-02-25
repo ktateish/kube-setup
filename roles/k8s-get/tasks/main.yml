@@ -1,0 +1,17 @@
+---
+- name: create directories
+  file: name={{ item }} state=directory
+  with_items:
+    - "{{ k8s_get_dir }}"
+
+- name: download k8s binary archive
+  get_url:
+    url: "{{ k8s_url }}/{{ k8s_ver }}/kubernetes-server-linux-amd64.tar.gz"
+    dest: "{{ k8s_get_dir }}/kubernetes-server-linux-amd64.tar.gz"
+    checksum: "{{ k8s_checksum }}"
+
+- name: untar archive
+  unarchive:
+    src: "{{ k8s_get_dir }}/kubernetes-server-linux-amd64.tar.gz"
+    dest: "{{ k8s_get_dir }}"
+    remote_src: True

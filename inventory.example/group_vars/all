@@ -1,0 +1,6 @@
+k8s_url: https://storage.googleapis.com/kubernetes-release/release
+k8s_ver: v1.5.2
+k8s_api_servers: http://kube:8080
+k8s_get_dir: /var/cache/k8s-get
+k8s_checksum: sha256:8c4be20caa87530fdd17e539abe6f2d3cfccaef9156d262d4d9859ca8b6e3a38
+k8s_svc_cluster_ip_range: 10.200.100.0/24
