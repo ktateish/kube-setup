@@ -6,8 +6,8 @@ if [ -z "$1" ]; then
 fi
 
 case "$1" in
-s|stage)
-	name=stage
+s|staging)
+	name=staging
 	;;
 p|prod)
 	name=prod
