@@ -4,4 +4,4 @@
 # default config should be adequate
 
 # Add your own!
-KUBE_PROXY_ARGS="--hostname-override={{ inventory_hostname }} --masquerade-all"
+KUBE_PROXY_ARGS="--hostname-override={{ inventory_hostname }}"
