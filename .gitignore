@@ -1,7 +1,6 @@
 *.retry
-/bin/
+*.swp
+
+/go
 /inventory*
-/lib/
-/local/
-/pip-selfcheck.json
-/share/
+/py
