@@ -1,7 +1,10 @@
 *.retry
 *.swp
 
+/bin
+/ca
 /cache
 /go
 /inventory*
 /py
+/token

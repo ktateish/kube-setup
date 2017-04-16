@@ -1,0 +1,18 @@
+---
+# vars file for k8s-ca
+k8s_ca_clients:
+  - name: admin
+    cn:   admin
+    role: system:masters
+  - name: kube-proxy
+    cn:   system:kube-proxy
+    role: system:node-proxier
+
+k8s_ca_etcd_local_addr:
+      - 127.0.0.1
+      - localhost
+
+k8s_ca_kubernetes_local_addr:
+      - 127.0.0.1
+      - localhost
+      - kubernetes.default

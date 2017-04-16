@@ -1,0 +1,134 @@
+---
+# tasks file for k8s-ca
+
+#
+# Install tools
+#
+
+# cfssl
+- name: check cfssl installed
+  command: which cfssl
+  ignore_errors: True
+  changed_when: False
+  register: which_cfssl_result
+
+- set_fact:
+    have_cfssl: True
+  when: which_cfssl_result.rc == 0
+
+- name: install cfssl
+  command: go get -u github.com/cloudflare/cfssl/cmd/cfssl
+  when: have_cfssl is not defined
+
+- name: check cfssljson installed
+  command: which cfssljson
+  ignore_errors: True
+  changed_when: False
+  register: which_cfssljson_result
+
+- set_fact:
+    have_cfssljson: True
+  when: which_cfssljson_result.rc == 0
+
+- name: install cfssl
+  command: go get -u github.com/cloudflare/cfssl/cmd/cfssljson
+  when: have_cfssljson is not defined
+
+#
+# CA
+#
+- name: create CA directory
+  file: path=inventory/ca state=directory
+
+- name: copy CA config
+  copy: src=ca/{{ item }} dest=inventory/ca/{{ item }}
+  with_items:
+    - ca-config.json
+    - ca-csr.json
+      #- admin-csr.json
+
+- set_fact:
+    k8s_ca_etcd_addresses: "{{ hostvars[groups['etcd'][0]]['k8s_ca_etcd_addresses'] }}"
+
+- set_fact:
+    k8s_ca_etcd_ip_addrs: >-
+      {%- set tmp = k8s_ca_etcd_local_addr -%}
+      {%- set tmp = tmp + k8s_ca_etcd_addresses -%}
+      {{ tmp }}
+
+- name: copy etcd csr config
+  template: src=ca/etcd-csr.json dest=inventory/ca/etcd-csr.json
+
+- set_fact:
+    k8s_ca_users: >-
+      {%- set tmp = [] -%}
+      {%- for i in k8s_users -%}
+      {%-   set _ = tmp.append({
+                      "name":i,
+                      "cn":i,
+                      "role":"{{ k8s_users_group }}"
+                      }) -%}
+      {%- endfor -%}
+      {{ tmp }}
+
+- set_fact:
+    k8s_ca_targets: "{{ k8s_ca_clients }} + {{ k8s_ca_users }}"
+
+- name: copy client csr configs
+  template: src=ca/client-csr.json dest=inventory/ca/{{ item.name }}-csr.json
+  with_items: "{{ k8s_ca_targets }}"
+
+- set_fact:
+    k8s_ca_controller_addresses: "{{ hostvars[groups['controller'][0]]['k8s_ca_controller_addresses'] }}"
+
+- set_fact:
+    k8s_ca_kubernetes_ip_addrs: >-
+      {%- set tmp = k8s_ca_kubernetes_local_addr -%}
+      {%- set tmp = tmp + k8s_ca_controller_addresses -%}
+      {%- set _ = tmp.append(k8s_public_ip_addr) -%}
+      {%- set _ = tmp.append(k8s_public_fqdn) -%}
+      {%- set _ = tmp.append(k8s_svc_cluster_api_addr) -%}
+      {%- set _ = tmp.append(k8s_cluster_name+'.'+k8s_domain) -%}
+      {{ tmp }}
+
+- name: copy kubernetes csr config
+  template: src=ca/kubernetes-csr.json dest=inventory/ca/kubernetes-csr.json
+
+- name: copy Makefile
+  template: src=ca/Makefile dest=inventory/ca/Makefile
+
+- name: generate CA
+  make: chdir=inventory/ca
+
+#
+# Token
+#
+- name: create token directory
+  file: path=inventory/token state=directory
+
+- name: copy token Makefile
+  template: src=token/Makefile dest=inventory/token/Makefile
+
+- name: generate token
+  make: chdir=inventory/token
+
+#
+# Link created files
+#
+- name: link ca
+  file:
+    src: "../../../inventory/ca"
+    dest: "roles/{{ item }}/files/ca"
+    state: link
+  with_items:
+    - k8s-etcd
+    - k8s-ctrl
+
+- name: link token
+  file:
+    src: "../../../inventory/token"
+    dest: "roles/{{ item }}/files/token"
+    state: link
+  with_items:
+    - k8s-etcd
+    - k8s-ctrl
