@@ -62,6 +62,7 @@
   with_items:
     - k8s-etcd
     - k8s-ctrl
+    - k8s-worker
 
 - name: distribute etcd dir as symbolic links
   file:
@@ -71,6 +72,22 @@
   with_items:
     - k8s-etcd
     - k8s-ctrl
+
+- name: distribute docker dir as symbolic links
+  file:
+    src: "../../../cache/docker"
+    dest: "roles/{{ item }}/files/docker"
+    state: link
+  with_items:
+    - k8s-worker
+
+- name: distribute cni archive as symbolic links
+  file:
+    src: "../../../cache/cni.tar.gz"
+    dest: "roles/{{ item }}/files/cni.tar.gz"
+    state: link
+  with_items:
+    - k8s-worker
 
 # kubectl for local
 - name: get system

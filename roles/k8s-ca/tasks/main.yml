@@ -123,6 +123,7 @@
   with_items:
     - k8s-etcd
     - k8s-ctrl
+    - k8s-worker
 
 - name: link token
   file:
@@ -132,3 +133,4 @@
   with_items:
     - k8s-etcd
     - k8s-ctrl
+    - k8s-worker

@@ -1,0 +1,78 @@
+---
+# tasks file for k8s-worker
+- name: install packages
+  apt: name={{ item }} update_cache=yes
+  with_items:
+    - socat             # for helm
+    - nfs-common        # for nfs pv
+
+- name: create service dir
+  file: path=/var/lib/{{ item }} state=directory
+  with_items:
+    - kubelet
+    - kubernetes
+    - kube-proxy
+
+- name: create run dir
+  file: path=/var/run/kubernetes state=directory
+
+- name: copy kubelet bootstrap
+  copy: src=token/bootstrap.kubeconfig dest=/var/lib/kubelet mode=400
+
+- name: copy kube-proxy bootstrap
+  copy: src=token/kube-proxy.kubeconfig dest=/var/lib/kube-proxy mode=400
+
+- name: copy ca
+  copy: src=ca/ca.pem dest=/var/lib/kubernetes/ca.pem mode=444
+
+- name: copy docker binaries
+  copy: src=docker/{{ item }} dest=/usr/bin/{{ item }} mode=555
+  with_items:
+    - docker
+    - docker-containerd
+    - docker-containerd-ctr
+    - docker-containerd-shim
+    - dockerd
+    - docker-proxy
+    - docker-runc
+  notify:
+    - restart docker
+
+- name: copy docker.service
+  copy: src={{ item }} dest=/{{ item }}
+  with_items:
+    - etc/systemd/system/docker.service
+  notify:
+    - restart docker
+
+- name: create cni dir
+  file: path=/opt/cni state=directory
+
+- name: untar cni archive
+  unarchive: src=cni.tar.gz dest=/opt/cni
+
+- name: copy kubernetes binaries
+  copy: src=kubernetes/{{ item }} dest=/usr/bin/{{ item }} mode=555
+  with_items:
+    - kubectl
+    - kubelet
+    - kube-proxy
+  notify:
+    - restart kubelet
+    - restart kube-proxy
+
+- name: copy kubelet.service
+  template: src={{ item }} dest=/{{ item }}
+  with_items:
+    - etc/systemd/system/kubelet.service
+  notify:
+    - restart kubelet
+
+- name: copy kube-proxy.service
+  template: src={{ item }} dest=/{{ item }}
+  with_items:
+    - etc/systemd/system/kube-proxy.service
+  notify:
+    - restart kube-proxy
+
+- meta: flush_handlers
