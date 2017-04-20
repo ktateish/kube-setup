@@ -54,6 +54,22 @@
     dest: cache/etcd
     state: link
 
+- name: distribute kubernetes dir as symbolic links
+  file:
+    src: "../../../cache/kubernetes"
+    dest: "roles/{{ item }}/files/kubernetes"
+    state: link
+  with_items:
+    - k8s-etcd
+
+- name: distribute etcd dir as symbolic links
+  file:
+    src: "../../../cache/etcd"
+    dest: "roles/{{ item }}/files/etcd"
+    state: link
+  with_items:
+    - k8s-etcd
+
 # kubectl for local
 - name: get system
   shell: uname -s | tr 'A-Z' 'a-z'

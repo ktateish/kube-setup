@@ -1,0 +1,84 @@
+---
+# tasks file for k8s-etcd
+- name: create directories
+  file: path={{ item }} state=directory
+  with_items:
+    - /etc/etcd
+    - /var/lib/etcd
+
+- name: put certs
+  copy: src=ca/{{ item.name }} dest=/etc/etcd/{{ item.name }} mode={{ item.mode }}
+  with_items:
+    - name: ca.pem
+      mode: 444
+    - name: etcd-key.pem
+      mode: 400
+    - name: etcd.pem
+      mode: 444
+  notify: restart etcd
+
+- name: put initial token
+  copy: src=token/etcd_token dest=/etc/etcd/initial_token mode=400
+
+- name: put commands
+  copy: src=etcd/{{ item }} dest=/usr/bin/{{ item }} mode=555
+  with_items:
+    - etcd
+    - etcdctl
+
+- name: read token
+  command: cat /etc/etcd/initial_token
+  register: token_result
+  changed_when: False
+
+- set_fact:
+    k8s_etcd_initial_token: "{{ token_result.stdout }}"
+
+- set_fact:
+    k8s_etcd_addrs: "{{ groups['etcd'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | list }}"
+
+- set_fact:
+    k8s_etcd_initial_cluster: >-
+      {%- set tmp = [] -%}
+      {%- for name in groups['etcd'] -%}
+      {%-   set i = loop.index-1 -%}
+      {%-   set _ = tmp.append(name + "=https://" + k8s_etcd_addrs[i] + ":2380") -%}
+      {%- endfor -%}
+      {{ tmp | join(',') }}
+
+#'
+
+- set_fact:
+    k8s_etcd_endpoints: >-
+      {%- set tmp = [] -%}
+      {%- for addr in k8s_etcd_addrs -%}
+      {%-   set _ = tmp.append( "https://" + addr + ":2379") -%}
+      {%- endfor -%}
+      {{ tmp | join(',') }}
+
+#'
+
+- name: put systemd unit-file
+  template: src={{ item }} dest=/{{ item }} mode=640
+  with_items:
+    - etc/systemd/system/etcd.service
+  notify: restart etcd
+
+- meta: flush_handlers
+
+- name: check etcd service up
+  local_action: wait_for host={{ ansible_default_ipv4.address }} port=2379
+
+- name: check etcd health
+  shell: >
+    env ETCDCTL_API=3 etcdctl
+    --cacert /etc/etcd/ca.pem
+    --cert /etc/etcd/etcd.pem
+    --key /etc/etcd/etcd-key.pem
+    --endpoints={{ k8s_etcd_endpoints }}
+    endpoint health 2>/dev/null |awk '{print $3}' |uniq
+  register: result
+  until: result.stdout == "healthy:"
+  retries: 10
+  delay: 6
+  changed_when: False
