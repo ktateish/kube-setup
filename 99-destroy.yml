@@ -1,0 +1,67 @@
+- name: destroy worker
+  become: True
+  hosts: worker
+  tasks:
+    - name: stop service
+      systemd: name={{ item }} state=stopped daemon_reload=yes enabled=no
+      with_items:
+        - docker
+        - kubelet
+        - kube-proxy
+
+    - pause:
+        seconds: 10
+
+    - name: rm directories
+      file: path={{ item }} state=absent
+      with_items:
+        - /etc/docker
+        - /usr/bin/dockerd
+        - /usr/bin/kubelet
+        - /usr/bin/kube-proxy
+        - /var/lib/docker
+        - /var/lib/kubernetes
+        - /var/lib/kubelet
+        - /var/lib/kube-proxy
+
+- name: destroy controller
+  become: True
+  hosts: controller
+  tasks:
+    - name: stop service
+      systemd: name={{ item }} state=stopped daemon_reload=yes enabled=no
+      with_items:
+        - kube-apiserver
+        - kube-controller-manager
+        - kube-scheduler
+
+    - pause:
+        seconds: 10
+
+    - name: rm directories
+      file: path={{ item }} state=absent
+      with_items:
+        - /usr/bin/kube-apiserver
+        - /usr/bin/kube-controller-manager
+        - /usr/bin/kube-scheduler
+        - /var/lib/kubernetes
+
+- name: destroy etcd
+  become: True
+  hosts: etcd
+  tasks:
+    - name: stop service
+      systemd: name={{ item }} state=stopped daemon_reload=yes enabled=no
+      with_items:
+        - etcd
+
+    - pause:
+        seconds: 10
+
+    - name: rm directories
+      file: path={{ item }} state=absent
+      with_items:
+        - /etc/etcd
+        - /usr/bin/etcd
+        - /usr/bin/etcdctl
+        - /var/lib/etcd
