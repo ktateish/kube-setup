@@ -1,0 +1,13 @@
+- name: Do apt-get upgrade and reboot
+  become: true
+  hosts: "{{ target }}"
+  tasks:
+    - name: reboot
+      command: shutdown -r now
+      async: 0
+      poll: 0
+      ignore_errors: true
+      changed_when: False
+
+    - name: wait for server up
+      local_action: wait_for host={{ ansible_ssh_host }} port={{ ansible_ssh_port }}
