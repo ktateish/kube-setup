@@ -1,0 +1,18 @@
+{% for ns in ['kube-system', 'default', 'admin'] + k8s_users %}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-{{ ns }}
+  labels:
+    dedicated_for: {{ ns }}
+    porvided_by: kube-setup
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: {{ k8s_external_nfs_server }}
+    path: "{{ k8s_external_nfs_path }}/{{ ns }}"
+{% endfor %}
