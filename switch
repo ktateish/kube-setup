@@ -6,6 +6,9 @@ if [ -z "$1" ]; then
 fi
 
 case "$1" in
+d|devel)
+	name=devel
+	;;
 s|staging)
 	name=staging
 	;;
