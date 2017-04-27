@@ -1,0 +1,28 @@
+- name: Install python (0)
+  become: True
+  gather_facts: False
+  hosts: all[0]
+  tasks:
+    - name: use jp archive (0)
+      raw: sed -i -e 's,http://archive.ubuntu,http://jp.archive.ubuntu,g' /etc/apt/sources.list
+
+    - name: apt-get update
+      raw: apt-get update
+
+    - name: install python (0)
+      raw: apt-get install -y python
+
+
+- name: Install python
+  become: True
+  gather_facts: False
+  hosts: all
+  tasks:
+    - name: use jp archive
+      raw: sed -i -e 's,http://archive.ubuntu,http://jp.archive.ubuntu,g' /etc/apt/sources.list
+
+    - name: apt-get update
+      raw: apt-get update
+
+    - name: install python
+      raw: apt-get install -y python
