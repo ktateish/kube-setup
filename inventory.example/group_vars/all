@@ -1,6 +1,23 @@
-k8s_url: https://storage.googleapis.com/kubernetes-release/release
-k8s_ver: v1.5.2
-k8s_api_servers: http://kube:8080
-k8s_get_dir: /var/cache/k8s-get
-k8s_checksum: sha256:8c4be20caa87530fdd17e539abe6f2d3cfccaef9156d262d4d9859ca8b6e3a38
-k8s_svc_cluster_ip_range: 10.200.100.0/24
+# vim:set ft=yaml:
+ansible_ssh_user: ubuntu
+
+k8s_cluster_name: devel
+k8s_domain: dc0
+k8s_public_fqdn: dk8s.example.com
+k8s_public_port: 6443
+k8s_public_ip_addr: 10.1.1.1
+
+# XXX should be get from ip range
+k8s_svc_cluster_api_addr: 10.32.0.1
+k8s_cluster_dns: 10.32.0.10
+k8s_svc_cluster_ip_range: 10.32.0.0/24
+k8s_cluster_cidr: 10.200.0.0/16
+
+k8s_external_nfs_server: 192.168.1.2
+k8s_external_nfs_path: /srv/exports/devel
+
+# Users
+k8s_users:
+  - foo
+  - bar
+k8s_users_group: developer
