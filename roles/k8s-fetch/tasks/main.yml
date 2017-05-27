@@ -1,0 +1,116 @@
+---
+# tasks file for k8s-fetch
+- name: create cache directory
+  file: name=cache state=directory
+
+# Kubernetes
+- name: create kubernetes directory
+  file: path=cache/kubernetes state=directory
+
+- name: download binaries
+  get_url:
+    url: "{{ k8s_fetch_url }}/{{ k8s_fetch_ver }}/bin/linux/amd64/{{ item }}"
+    dest: "cache/kubernetes/{{ item }}"
+    mode: 0755
+  with_items:
+    - kubectl
+    - kubelet
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-proxy
+    - kube-scheduler
+
+# etcd
+- name: download etcd binary archive for etcd nodes
+  get_url:
+    url: "{{ k8s_fetch_etcd_url }}/{{ k8s_fetch_etcd_ver }}/etcd-{{ k8s_fetch_etcd_ver }}-linux-amd64.tar.gz"
+    dest: "cache/etcd-{{ k8s_fetch_etcd_ver }}-linux-amd64.tar.gz"
+
+- name: untar archive
+  unarchive:
+    src: "cache/etcd-{{ k8s_fetch_etcd_ver }}-linux-amd64.tar.gz"
+    dest: "{{ ansible_env.PWD }}/cache/"
+
+# docker
+- name: fetch docker binary
+  get_url:
+    url: "{{ k8s_fetch_docker_url }}/docker-{{ k8s_fetch_docker_ver }}.tgz"
+    dest: "cache/docker-{{ k8s_fetch_docker_ver }}.tgz"
+
+- name: untar docker archive
+  unarchive:
+    src: "cache/docker-{{ k8s_fetch_docker_ver }}.tgz"
+    dest: "{{ ansible_env.PWD }}/cache/"
+
+# cni
+- name: fetch cni binary
+  get_url:
+    url: "{{ k8s_fetch_cni_url }}/cni-amd64-{{ k8s_fetch_cni_ver }}.tar.gz"
+    dest: "cache/cni.tar.gz"
+
+- name: create link as unversioned name
+  file:
+    src: "etcd-{{ k8s_fetch_etcd_ver }}-linux-amd64"
+    dest: cache/etcd
+    state: link
+
+- name: distribute kubernetes dir as symbolic links
+  file:
+    src: "../../../cache/kubernetes"
+    dest: "roles/{{ item }}/files/kubernetes"
+    state: link
+  with_items:
+    - k8s-etcd
+    - k8s-ctrl
+    - k8s-worker
+
+- name: distribute etcd dir as symbolic links
+  file:
+    src: "../../../cache/etcd"
+    dest: "roles/{{ item }}/files/etcd"
+    state: link
+  with_items:
+    - k8s-etcd
+    - k8s-ctrl
+
+- name: distribute docker dir as symbolic links
+  file:
+    src: "../../../cache/docker"
+    dest: "roles/{{ item }}/files/docker"
+    state: link
+  with_items:
+    - k8s-worker
+
+- name: distribute cni archive as symbolic links
+  file:
+    src: "../../../cache/cni.tar.gz"
+    dest: "roles/{{ item }}/files/cni.tar.gz"
+    state: link
+  with_items:
+    - k8s-worker
+
+# kubectl for local
+- name: get system
+  shell: uname -s | tr 'A-Z' 'a-z'
+  changed_when: False
+  register: uname_s_result
+
+- set_fact:
+    system_name: "{{ uname_s_result.stdout }}"
+
+- name: get arch
+  shell: uname -m | tr 'A-Z' 'a-z' | sed -e 's/x86_64/amd64/'
+  changed_when: False
+  register: uname_m_result
+
+- set_fact:
+    arch_name: "{{ uname_m_result.stdout }}"
+
+- name: create go dir
+  file: name=go/bin state=directory
+
+- name: download kubectl for local machine
+  get_url:
+    url: "{{ k8s_fetch_url }}/{{ k8s_fetch_ver }}/bin/{{ system_name }}/{{ arch_name }}/kubectl"
+    dest: "{{ ansible_env.PWD }}/go/bin/kubectl"
+    mode: 0755

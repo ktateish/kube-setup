@@ -1,0 +1,17 @@
+{
+  "CN": "kubernetes",
+  "hosts": [ "{{ k8s_ca_kubernetes_ip_addrs | join("\", \"") }}" ],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "JP",
+      "S": "Tokyo",
+      "L": "Minato",
+      "O": "Kubernetes",
+      "OU": "Cluster"
+    }
+  ]
+}

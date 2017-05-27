@@ -1,0 +1,14 @@
+---
+# vars file for k8s-crb
+
+k8s_crb_cluster_roles:
+  - name: "kubelet-bootstrap"
+    role: "system:node-bootstrapper"
+    subject:
+      type: "User"
+      name: "kubelet-bootstrap"
+  - name: "serviceaccounts-cluster-admin"
+    role: "cluster-admin"
+    subject:
+      type: "Group"
+      name: "system:serviceaccounts"

@@ -1,0 +1,5 @@
+- name: Get k8s archive and extract
+  hosts: localhost
+  connection: local
+  roles:
+    - k8s-fetch

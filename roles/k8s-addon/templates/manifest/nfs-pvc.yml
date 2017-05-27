@@ -1,0 +1,18 @@
+{% for ns in ['kube-system', 'default', 'admin'] + k8s_users %}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs
+  namespace: {{ ns }}
+spec:
+  selector:
+    matchLabels:
+      dedicated_for: {{ ns }}
+      porvided_by: kube-setup
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+{% endfor %}

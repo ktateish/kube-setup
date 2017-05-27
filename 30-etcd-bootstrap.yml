@@ -1,0 +1,7 @@
+- name: Setup CA and prepare certs
+  become: True
+  hosts: etcd
+  environment:
+    PATH: "{{ lookup('env', 'PWD') }}/go/bin:{{ lookup('env', 'PATH') }}"
+  roles:
+    - k8s-etcd

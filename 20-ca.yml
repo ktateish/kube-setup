@@ -1,0 +1,20 @@
+- name: set fact from etcd
+  hosts: etcd
+  tasks:
+    - set_fact:
+        k8s_ca_etcd_addresses: "{{ groups['etcd'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | list }}"
+
+- name: set fact from controller
+  hosts: controller
+  tasks:
+    - set_fact:
+        k8s_ca_controller_addresses: "{{ groups['controller'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | list }}"
+
+- name: Setup CA and prepare certs
+  hosts: localhost
+  connection: local
+  environment:
+    GOPATH: "{{ lookup('env', 'PWD') }}/go"
+    PATH: "{{ lookup('env', 'PWD') }}/go/bin:{{ lookup('env', 'PATH') }}"
+  roles:
+    - k8s-ca

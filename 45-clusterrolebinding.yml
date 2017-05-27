@@ -1,0 +1,5 @@
+- name: setup Cluster Role Binding
+  become: True
+  hosts: controller[0]
+  roles:
+    - k8s-crb

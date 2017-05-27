@@ -1,0 +1,55 @@
+---
+# tasks file for k8s-crb
+- name: create tmpdir
+  file: path=/root/manifest state=directory mode=700
+
+- name: copy namespace manifests
+  template: src=manifest/namespace.yml dest=/root/manifest/ns-{{ item }}.yml
+  with_items: "{{ k8s_users }} + [ '{{ k8s_users_group }}', 'admin' ]"
+
+- name: copy system crb manifests
+  template: src=manifest/crb.yml dest=/root/manifest/crb-{{ item.name }}.yml
+  with_items: "{{ k8s_crb_cluster_roles }}"
+
+- name: copy clusterrolebinding manifests for group
+  template:
+    src: "manifest/crb-group-view.yml"
+    dest: "/root/manifest/crb-group-{{ item }}-view.yml"
+  with_items:
+    - "{{ k8s_users_group }}"
+
+- name: copy rolebinding manifests for group
+  template:
+    src: "manifest/rb-group-edit.yml"
+    dest: "/root/manifest/rb-group-{{ item }}-edit.yml"
+  with_items:
+    - "{{ k8s_users_group }}"
+
+- name: copy rolebinding manifests for user
+  template:
+    src: "manifest/rb-user-admin.yml"
+    dest: "/root/manifest/rb-user-{{ item }}-admin.yml"
+  with_items: "{{ k8s_users }}"
+
+# apply
+- name: apply namespace manifests
+  command: kubectl apply -f /root/manifest/ns-{{ item }}.yml
+  with_items: "{{ k8s_users }} + [ '{{ k8s_users_group }}', 'admin' ]"
+
+- name: apply crb manifests
+  command: kubectl apply -f /root/manifest/crb-{{ item.name }}.yml
+  with_items: "{{ k8s_crb_cluster_roles }}"
+
+- name: apply clusterrolebinding manifests for group
+  command: kubectl apply -f /root/manifest/crb-group-{{ item }}-view.yml
+  with_items:
+    - "{{ k8s_users_group }}"
+
+- name: apply rolebinding manifests for group
+  command: kubectl apply -f /root/manifest/rb-group-{{ item }}-edit.yml
+  with_items:
+    - "{{ k8s_users_group }}"
+
+- name: apply rolebinding manifests for user
+  command: kubectl apply -f /root/manifest/rb-user-{{ item }}-admin.yml
+  with_items: "{{ k8s_users }}"

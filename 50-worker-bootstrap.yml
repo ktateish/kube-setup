@@ -1,0 +1,26 @@
+- name: setup worker
+  become: True
+  hosts: worker
+  roles:
+    - k8s-worker
+
+- name: approve worker
+  become: True
+  hosts: controller[0]
+  tasks:
+    - pause:
+        seconds: 30
+
+    - name: approve all workers
+      shell: kubectl certificate approve `kubectl get csr -o 'jsonpath={$.items[*].metadata.name}'`
+
+    - name: check nodes ready
+      shell: >
+        kubectl get nodes
+        -o 'jsonpath={range .items[*]}{.status.conditions[?(@.type=="Ready")].status}{"\n"}' 
+        | uniq
+      register: result
+      until: result.stdout == "True"
+      retries: 10
+      delay: 6
+      changed_when: False

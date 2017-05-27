@@ -3,22 +3,71 @@
 - name: create directories
   file: name={{ item }} state=directory
   with_items:
-    - /etc/kubernetes/manifests
+    - /var/lib/kubernetes
+    - /var/log/kubernetes
 
-- name: create log files
-  file: name={{ item }} state=touch
+- name: put token.csv
+  copy: src=token/token.csv dest=/var/lib/kubernetes/token.csv mode=644
+
+- name: put certs
+  copy: src=ca/{{ item.name }} dest=/var/lib/kubernetes/{{ item.name }} mode={{ item.mode }}
   with_items:
-    - /var/log/etcd.log
-    - /var/log/etcd-events.log
-    - /var/log/kube-apiserver.log
-    - /var/log/kube-controller-manager.log
-    - /var/log/kube-scheduler.log
+    - name: ca-key.pem
+      mode: 400
+    - name: ca.pem
+      mode: 444
+    - name: kubernetes-key.pem
+      mode: 400
+    - name: kubernetes.pem
+      mode: 444
+  notify:
+    - restart kube-apiserver
+    - restart kube-controller-manager
+    - restart kube-scheduler
 
-- name: copy manifests
+- name: put binaries
+  copy: src=kubernetes/{{ item }} dest=/usr/bin/{{ item }} mode=555
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+    - kubectl
+  notify:
+    - restart kube-apiserver
+    - restart kube-controller-manager
+    - restart kube-scheduler
+
+- set_fact:
+    k8s_ctrl_etcd_servers: "{{ hostvars[groups['etcd'][0]]['k8s_ctrl_etcd_servers'] }}"
+
+- name: put configs
   template: src={{ item }} dest=/{{ item }}
   with_items:
-    - etc/kubernetes/manifests/etcd.yaml
-    - etc/kubernetes/manifests/etcd-events.yaml
-    - etc/kubernetes/manifests/kube-apiserver.yaml
-    - etc/kubernetes/manifests/kube-controller-manager.yaml
-    - etc/kubernetes/manifests/kube-scheduler.yaml
+    - etc/systemd/system/kube-apiserver.service
+    - etc/systemd/system/kube-controller-manager.service
+    - etc/systemd/system/kube-scheduler.service
+  notify:
+    - restart kube-apiserver
+    - restart kube-controller-manager
+    - restart kube-scheduler
+
+- meta: flush_handlers
+
+- name: check apiserver up
+  local_action: wait_for host={{ ansible_default_ipv4.address }} port=6443
+
+- name: check controller-manager status
+  command: kubectl get componentstatus controller-manager -o 'jsonpath={$.conditions[0].message}'
+  register: result
+  until: result.stdout == "ok"
+  retries: 10
+  delay: 6
+  changed_when: False
+
+- name: check scheduler status
+  command: kubectl get componentstatus scheduler -o 'jsonpath={$.conditions[0].message}'
+  register: result
+  until: result.stdout == "ok"
+  retries: 10
+  delay: 6
+  changed_when: False

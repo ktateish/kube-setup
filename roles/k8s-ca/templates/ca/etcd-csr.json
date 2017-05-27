@@ -1,0 +1,17 @@
+{
+  "CN": "etcd",
+  "hosts": [ "{{ k8s_ca_etcd_ip_addrs | join("\", \"") }}" ],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "JP",
+      "S": "Tokyo",
+      "L": "Minato",
+      "O": "Etcd",
+      "OU": "Cluster"
+    }
+  ]
+}
