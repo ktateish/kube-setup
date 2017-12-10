@@ -4,7 +4,7 @@ k8s_fetch_url: https://storage.googleapis.com/kubernetes-release/release
 k8s_fetch_ver: v1.6.1
 
 k8s_fetch_etcd_url: https://github.com/coreos/etcd/releases/download
-k8s_fetch_etcd_ver: v3.1.4
+k8s_fetch_etcd_ver: v3.1.11
 
 k8s_fetch_docker_url: https://get.docker.com/builds/Linux/x86_64
 k8s_fetch_docker_ver: 1.12.6
