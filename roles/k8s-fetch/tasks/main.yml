@@ -45,7 +45,7 @@
 # cni
 - name: fetch cni binary
   get_url:
-    url: "{{ k8s_fetch_cni_url }}/cni-amd64-{{ k8s_fetch_cni_ver }}.tar.gz"
+    url: "{{ k8s_fetch_cni_url }}/cni-plugins-amd64-{{ k8s_fetch_cni_ver }}.tgz"
     dest: "cache/cni.tar.gz"
 
 - name: create link as unversioned name
