@@ -46,10 +46,10 @@
     - restart docker
 
 - name: create cni dir
-  file: path=/opt/cni state=directory
+  file: path=/opt/cni/bin state=directory
 
 - name: untar cni archive
-  unarchive: src=cni.tar.gz dest=/opt/cni
+  unarchive: src=cni.tar.gz dest=/opt/cni/bin
 
 - name: copy kubernetes binaries
   copy: src=kubernetes/{{ item }} dest=/usr/bin/{{ item }} mode=555

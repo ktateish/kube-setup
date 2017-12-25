@@ -1,7 +1,7 @@
 ---
 # vars file for k8s-fetch
 k8s_fetch_url: https://storage.googleapis.com/kubernetes-release/release
-k8s_fetch_ver: v1.6.1
+k8s_fetch_ver: v1.7.11
 
 k8s_fetch_etcd_url: https://github.com/coreos/etcd/releases/download
 k8s_fetch_etcd_ver: v3.1.11
@@ -9,5 +9,5 @@ k8s_fetch_etcd_ver: v3.1.11
 k8s_fetch_docker_url: https://get.docker.com/builds/Linux/x86_64
 k8s_fetch_docker_ver: 1.12.6
 
-k8s_fetch_cni_url: https://storage.googleapis.com/kubernetes-release/network-plugins
-k8s_fetch_cni_ver: 0799f5732f2a11b329d9e3d51b9c8f2e3759f2ff
+k8s_fetch_cni_url: https://github.com/containernetworking/plugins/releases/download/v0.6.0/
+k8s_fetch_cni_ver: v0.6.0

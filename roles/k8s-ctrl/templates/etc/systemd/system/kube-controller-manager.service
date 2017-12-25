@@ -15,6 +15,7 @@ ExecStart=/usr/bin/kube-controller-manager \
   --root-ca-file=/var/lib/kubernetes/ca.pem \
   --service-account-private-key-file=/var/lib/kubernetes/ca-key.pem \
   --service-cluster-ip-range={{ k8s_svc_cluster_ip_range }} \
+  --pod-eviction-timeout=1m
   --v=2
 Restart=on-failure
 RestartSec=5
